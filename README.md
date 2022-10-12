@@ -29,6 +29,7 @@ For the computation of the scaffold, I also rely on different other libraries:
 - Jython 2.7.3. (https://www.jython.org)
 - Javaplex (https://github.com/appliedtopology/javaplex)
 - Holes (an adaptation of the python package developed here: https://github.com/lordgrilo/Holes)
+
 Note that Javaplex and the Holes class are both contained within the folder "High_order_TS_with_scaffold"
 
 In any case, before using the code, make sure you have installed all the dependencies.  Finally, within each folder, you can find READMEs to guide you through the installation of the dependencies.
