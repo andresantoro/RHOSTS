@@ -1,6 +1,6 @@
 # RHOSTS-0.1
 
-This is **RHOSTS**(**R**econstructing the **H**igher **O**rder **S**tructure of **T**ime **S**eries), a python implementation of the algorithm for computing the higher-order structure of a multivariate time series
+This is **RHOSTS** (**R**econstructing the **H**igher **O**rder **S**tructure of **T**ime **S**eries), a python implementation of the algorithm for computing the higher-order structure of a multivariate time series
 
 In the folders "High_order_TS" and "High_order_TS_with_scaffold" there are different python codes, which respectively implement the algorithms to compute the global/local higher-order indicators from a multivariate time series and a similar one that also computes the homological scaffold from multivariate time series. The algorithms are based on the procedure described in the paper:
 
