@@ -4,6 +4,7 @@ import h5py
 import os
 
 
+## Create the structure containing all the edges and triplets for every time t
 def create_simplicial_framework_from_data(path_file, null_model_flag, folder_javaplex, scaffold_outdir):
     global ts_simplicial
     # Loading the data from file
@@ -33,6 +34,7 @@ def handle_output(result):
     print(" ".join([str(el) for el in result[:-1]]))
 
 
+##Launch the bulk of the code for a single time point
 def launch_code_one_t(t):
     # Computing the simplicial filtration for the time t
     list_simplices_positive, list_violation_fully_coherence, hyper_coherence, list_filtration_scaffold = ts_simplicial.create_simplicial_complex(
@@ -48,11 +50,13 @@ def launch_code_one_t(t):
     # pk.dump(dgms1_clean,open(dict_file,'wb'))
 
     # If flag is activated, compute the scaffold and save the list of generators on file
+    # The function below uses jython (and the corresponding code: persistent_homology_calculation.py)
     if ts_simplicial.javaplex_path != False:
         compute_scaffold(list_filtration_scaffold, dimension=1, directory=ts_simplicial.scaffold_outdir,
                          tag_name_output='_{0}'.format(t),
                          javaplex_path=ts_simplicial.javaplex_path, save_generators=True, verbose=False)
 
+    # Computing the hyper-complexity indicator as the Wasserstein distance with the empty space
     hyper_complexity = persim.sliced_wasserstein(dgms1_clean, np.array([]))
 
     # Since the signs of the persistence diagram are flipped,
@@ -84,8 +88,8 @@ def launch_code_one_t(t):
     # we compute the downward projection at the level of edges
     edge_weights = compute_edgeweight(list_violation_fully_coherence, n_ROI)
 
-    # Report the results in a vector and print everything (except the downward projections)
-    # on output
+    # Report the results in a vector and print everything 
+    # (except the downward projections) on standard output
     results = [t, hyper_complexity, complexity_FC, complexity_CT,
                complexity_FD, hyper_coherence, avg_edge_violation, edge_weights]
 
@@ -93,7 +97,6 @@ def launch_code_one_t(t):
 
 
 ############# MAIN CODE #############
-
 if len(sys.argv) <= 1:
     print(
         "******************************************************************************\n"
@@ -147,7 +150,7 @@ if __name__ == "__main__":
         f1.close()
 
     # Creating the structure containing the edge and triplet signals within the Pool process
-    # with this syntax, it should create problems in OS systems
+    # with this syntax, it shouldn't create problems in OS systems
     pool = Pool(processes=ncores, initializer=create_simplicial_framework_from_data,
                 initargs=(path_file, null_model_flag, folder_javaplex, scaffold_outdir))
 
