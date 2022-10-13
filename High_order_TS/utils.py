@@ -11,6 +11,7 @@ import persim
 import cechmate as cm
 
 
+# Function that parse all the inputs from the stdin
 def parse_input(input):
     t_init = t_end = 0
     ncores = 1
@@ -21,6 +22,7 @@ def parse_input(input):
     # This is the filename containing the multivariate time series
     path_file = input[1]
 
+    # Looping through the inputs (with the argparse library, it might be cleaner)
     for s in range(n_input):
         if sys.argv[s] == '-t' or input[s] == '-T':
             t_init = int(input[s + 1])
@@ -39,6 +41,7 @@ def parse_input(input):
     return(path_file, t_init, t_end, t_total, ncores, null_model_flag, flag_edgeweight, flag_edgeweight_fn)
 
 
+# Function that loads the multivariate time series from different formats
 def load_data(path_single_file):
     extension_file = path_single_file.split('.')[-1]
     if extension_file == 'mat':
@@ -47,11 +50,11 @@ def load_data(path_single_file):
         data = load_data_synthetic_kaneko(path_single_file)
     elif extension_file == 'txt':
         data = load_normaltxt(path_single_file)
-    #print(np.shape(data))
+    # print(np.shape(data))
     return(data)
 
 
-# Load brain data in .mat format (rows are ROI, columns are the time instants)
+# Load data in .mat format (rows are ROI, columns are the time instants)
 def load_data_mat(path_single_file):
     file_to_open = path_single_file
     data = sio.loadmat(file_to_open)
@@ -60,8 +63,6 @@ def load_data_mat(path_single_file):
     return(data)
 
 # Load the synthetic data generated from the Kaneko maps (coupled map lattices)
-
-
 def load_data_synthetic_kaneko(path_single_file):
     file_to_open = path_single_file
     data = np.loadtxt(file_to_open)
@@ -83,8 +84,6 @@ def load_data_synthetic_kaneko(path_single_file):
     return(np.transpose(np.array(data_cleaned)[:, 1:]))
 
 # Load synthetic data (format: columns represents independent time series )
-
-
 def load_normaltxt(path_single_file):
     file_to_open = path_single_file
     data = np.loadtxt(file_to_open)
@@ -128,7 +127,7 @@ class simplicial_complex_mvts():
         self.compute_edges_triplets()
 
     def shuffle_original_data(self):
-        # Shuffling the original
+        # Shuffling the original time series
         data = np.array([list(np.random.permutation(row))
                          for row in self.raw_data])
         # Save it
@@ -139,7 +138,6 @@ class simplicial_complex_mvts():
         self.raw_data = zscore(self.raw_data, axis=1)
 
     # Initial setup: computation of the edges and triplets
-
     def compute_edges_triplets(self):
         #-------------------------EDGES-----------------------------
         # Number of edges
@@ -208,9 +206,10 @@ class simplicial_complex_mvts():
         # Saving the indices of all the triplets
         self.triplets_indexes = dict(zip(np.arange(N_triplets), indices))
 
+
+
     # Function that, for a specific time t, computes the maximum between edges and triplets
     # This is used to replace the infty term after computing the persistence diagram
-
     def find_max_weight(self, t):
         edges_abs_max = self.ets_max[t]
         triplets_abs_max = self.triplets_max[t]
@@ -218,7 +217,6 @@ class simplicial_complex_mvts():
         return(m)
 
     # Function that remaps the weight of a k-order products using the pure coherence rule.
-
     def correction_for_coherence(self, current_list_sign, current_weight):
         # If the original signals are fully coherent, then the corresponding weight becomes positive, otherwise negative
         flag = 0
@@ -230,8 +228,8 @@ class simplicial_complex_mvts():
             weight_corrected = -np.abs(current_weight)
         return(weight_corrected)
 
-    # Function that creates the list of simplices (and provide also the list of violations)
 
+    # Function that creates the list of simplices (and provide also the list of violations)
     def create_simplicial_complex(self, t_current):
 
         # Creating the list of simplicial complex with all the edges and triangles
@@ -276,8 +274,8 @@ class simplicial_complex_mvts():
             list_simplices, t_current)
         return(list_simplices_for_filtration, list_violations, percentage_of_triangles_discarded)
 
-    # Function that remove all the violating triangles to create a proper filtration
 
+    # Function that remove all the violating triangles to create a proper filtration
     def fix_violations(self, list_simplices, t_current):
         # Sorting the simplices in a descending order according to weights
         sorted_simplices = sorted(
@@ -337,7 +335,7 @@ class simplicial_complex_mvts():
         return(list_simplices_for_filtration, list_violating_triangles, hyper_coherence)
 
 
-# Function that check for the pure coherence rule
+# Function that checks for the pure coherence rule (1 if it is fully coheren, -1 otherwise)
 def coherence_function(vector):
     n = len(vector)
     temp = 0
@@ -348,6 +346,8 @@ def coherence_function(vector):
     return(res)
 
 
+# Clean the persistence diagram, i.e. replace the inf term with a value given in input
+# In our case the value corresponds to the maximum weight at a specific time t
 def clean_persistence_diagram_cechmate(dgms, max_filtration, order=1):
     pdgm = []
     for i in dgms[order]:
@@ -358,15 +358,16 @@ def clean_persistence_diagram_cechmate(dgms, max_filtration, order=1):
     return(np.array(pdgm))
 
 
+# Compute the persistence diagram using cechmate
 def compute_persistence_diagram_cechmate(list_simplices_all):
     dgms = cm.phat_diagrams(list_simplices_all, show_inf=True, verbose=False)
     return(dgms)
 
 
+# Computing the edge weights from the violating triangles
+# (it also keeps the count of the number triangles one edge belongs to)    
 def compute_edgeweight(list_violations, num_ROI):
     Nviolations = len(list_violations)
-    # Computing the edge weights from the violating triangles
-    # (it also keeps the count on the number triangles one edge belongs to)
     edge_weight = {}
     for element in list_violations:
         triplets, weight, _ = element

@@ -4,6 +4,7 @@ import h5py
 import os
 
 
+## Create the structure containing all the edges and triplets for every time t
 def create_simplicial_framework_from_data(path_file, null_model_flag):
     global ts_simplicial
     # Loading the data from file
@@ -12,9 +13,10 @@ def create_simplicial_framework_from_data(path_file, null_model_flag):
     ts_simplicial = simplicial_complex_mvts(data, null_model_flag)
     # return(ts_simplicial)
 
-# This function allows to save on .hd5 file the list of violating triangles when projected at the level of edges
-
-
+# This function allows to save on .hd5 file the list of violating triangles when projected at the level of edges.
+# Moreover, it saves on the standard output several global quantities (line 32):
+# Time; Hyper complexity indic.; Hyper complexity FC; Hyper complexity CT;
+# Hyper complexity FD; Hyper coherence; Average edge violation
 def handle_output(result):
     global flag_edgeweight_fn
     if flag_edgeweight_fn != None:
@@ -30,8 +32,9 @@ def handle_output(result):
     print(" ".join([str(el) for el in result[:-1]]))
 
 
+##Launch the bulk of the code for a single time point
 def launch_code_one_t(t):
-    # Computeing the simplicial filtration for the time t
+    # Computing the simplicial filtration for the time t
     list_simplices_positive, list_violation_fully_coherence, hyper_coherence = ts_simplicial.create_simplicial_complex(
         t)
     # Computing the persistence diagram using cechmate
@@ -44,6 +47,8 @@ def launch_code_one_t(t):
     # dict_file = 'PD_{0}.pck'.format(t)
     # pk.dump(dgms1_clean,open(dict_file,'wb'))
 
+
+    # Computing the hyper-complexity indicator as the Wasserstein distance with the empty space
     hyper_complexity = persim.sliced_wasserstein(dgms1_clean, np.array([]))
 
     # Since the signs of the persistence diagram are flipped,
@@ -75,16 +80,16 @@ def launch_code_one_t(t):
     # we compute the downward projection at the level of edges
     edge_weights = compute_edgeweight(list_violation_fully_coherence, n_ROI)
 
-    # Report the results in a vector and print everything (except the downward projections)
-    # on output
+    # Report the results in a vector and print everything 
+    # (except the downward projections) on standard output
     results = [t, hyper_complexity, complexity_FC, complexity_CT,
                complexity_FD, hyper_coherence, avg_edge_violation, edge_weights]
 
     return(results)
 
 
-############# MAIN CODE #############
 
+############# MAIN CODE #############
 if len(sys.argv) <= 1:
     print(
         "******************************************************************************\n"
@@ -132,14 +137,15 @@ if __name__ == "__main__":
         f1 = h5py.File("{0}.hd5".format(flag_edgeweight_fn), "w")
         f1.close()
 
-    # Creating the structure containing the edge and triplet signals within the Pool process
-    # with this syntax, it should create problems in OS systems
+    # Creating the structure containing the edge and triplet signals within the Pool process.
+    # With this syntax, it shouldn't create problems in OS systems
     pool = Pool(processes=ncores, initializer=create_simplicial_framework_from_data,
                 initargs=(path_file, null_model_flag))
 
     if t_init == 0 and t_end == 0:  # By default, the script does the analysis on all the time points
         t_total = [t for t in range(t_init, ts_simplicial.T)]
 
+    # Main parallel computation
     for i in t_total:
         pool.apply_async(launch_code_one_t, (i, ), callback=handle_output)
 
