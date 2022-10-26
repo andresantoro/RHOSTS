@@ -23,12 +23,12 @@ After this you should be able to run all the bash files within the folder ```Exa
 You should be able to build the container using the command:
 
 ```
-docker build -t RHOSTS-python . 
+docker build -t rhosts-python . 
 ```
 
 and then run the container using the command:
 ```
-docker run --rm --mount type=bind,source="$(pwd)"/../,target=/repo -it --entrypoint bash RHOSTS-python
+docker run --rm --mount type=bind,source="$(pwd)"/../,target=/repo -it --entrypoint bash rhosts-python
 ```
 
 After this you should be able to run all the bash files within the folder ```/repo/Example/```
