@@ -5,10 +5,8 @@ import os
 
 
 ## Create the structure containing all the edges and triplets for every time t
-def create_simplicial_framework_from_data(path_file, null_model_flag):
+def create_simplicial_framework_from_data(data, null_model_flag):
     global ts_simplicial
-    # Loading the data from file
-    data = load_data(path_file)
     # Create the ets and the triplets_ts
     ts_simplicial = simplicial_complex_mvts(data, null_model_flag)
     # return(ts_simplicial)
@@ -137,13 +135,18 @@ if __name__ == "__main__":
         f1 = h5py.File("{0}.hd5".format(flag_edgeweight_fn), "w")
         f1.close()
 
+    # Loading the data from file
+    data_TS = load_data(path_file)
+
+
     # Creating the structure containing the edge and triplet signals within the Pool process.
     # With this syntax, it shouldn't create problems in OS systems
     pool = Pool(processes=ncores, initializer=create_simplicial_framework_from_data,
-                initargs=(path_file, null_model_flag))
+                initargs=(data_TS, null_model_flag))
 
     if t_init == 0 and t_end == 0:  # By default, the script does the analysis on all the time points
-        t_total = [t for t in range(t_init, ts_simplicial.T)]
+        t_end = np.shape(data_TS)[1]
+        t_total = [t for t in range(t_init, t_end)]
 
     # Main parallel computation
     for i in t_total:
