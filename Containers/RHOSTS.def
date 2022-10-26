@@ -1,0 +1,34 @@
+Bootstrap: docker
+From: python:3.8.15
+
+%environment
+export PATH="/opt/jython/bin:$PATH"
+
+%post
+# Set install variables, create tmp folder
+export TMPDIR="/tmp/general_preproc_build_$( date -u +"%F_%H-%M-%S" )"
+[[ -d ${TMPDIR} ]] && rm -rf ${TMPDIR}
+mkdir -p ${TMPDIR}
+cd ${TMPDIR}
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Europe/Brussels
+apt update -qq
+# Prepare repos and install dependencies
+apt install -y -q --no-install-recommends \
+    openjdk-11-jre
+# Install java
+mkdir -p /opt/jython
+wget https://repo1.maven.org/maven2/org/python/jython-installer/2.7.3/jython-installer-2.7.3.jar
+java -jar jython-installer-2.7.3.jar -s -d /opt/jython
+# Install PYTHON
+pip3 install \
+     numpy>=1.16.0 \
+     scipy>=1.5.0 \
+     persim>=0.3.1 \
+     pybind11>=2.5.0 \
+     h5py>=2.10.0
+pip3 install --use-deprecated=legacy-resolver cechmate>=0.0.10
+# Final removal of lists and cleanup
+cd /tmp || exit 1
+rm -rf ${TMPDIR}
+rm -rf /var/lib/apt/lists/*
