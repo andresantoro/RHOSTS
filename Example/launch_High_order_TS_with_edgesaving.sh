@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ### Launch the code for the times 0-5 and using 5 cores 
 ### and save the magnitude of the projected violating triangles \Delta_v at the level of edges
 ### on the file "edges_projection.hd5"
