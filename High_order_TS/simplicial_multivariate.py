@@ -12,7 +12,7 @@ def create_simplicial_framework_from_data(data, null_model_flag):
     # return(ts_simplicial)
 
 # This function allows to save on .hd5 file the list of violating triangles when projected at the level of edges.
-# Moreover, it saves on the standard output several global quantities (line 32):
+# Moreover, it saves on the standard output several global quantities (line 30):
 # Time; Hyper complexity indic.; Hyper complexity FC; Hyper complexity CT;
 # Hyper complexity FD; Hyper coherence; Average edge violation
 def handle_output(result):
