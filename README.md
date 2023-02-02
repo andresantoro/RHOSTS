@@ -4,7 +4,7 @@ This is **RHOSTS** (**R**econstructing the **H**igher **O**rder **S**tructure of
 
 In the folders "High_order_TS" and "High_order_TS_with_scaffold" there are different python codes, which respectively implement the algorithms to compute the global/local higher-order indicators from a multivariate time series and a similar one that also computes the homological scaffold from multivariate time series. The algorithms are based on the procedure described in the paper:
 
-A.Santoro, F. Battiston, G. Petri, E. Amico, *Unveiling the higher-order structure of multivariate time series*, 	arXiv:2203.10702  (2022) https://arxiv.org/abs/2203.10702
+A.Santoro, F. Battiston, G. Petri, E. Amico, *Higher-order structure of multivariate time series*, 	Nature Physics (2023) https://www.nature.com/articles/s41567-022-01852-0
 
 The code has been tested on Linux distributions using an anaconda environment with python 3.8.8.
 
