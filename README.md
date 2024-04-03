@@ -1,4 +1,4 @@
-# RHOSTS-0.1
+# RHOSTS-0.2
 
 This is **RHOSTS** (**R**econstructing the **H**igher **O**rder **S**tructure of **T**ime **S**eries), a python implementation of the algorithm for computing the higher-order structure of a multivariate time series
 
@@ -37,6 +37,10 @@ In any case, before using the code, make sure you have installed all the depende
 For instance, if you have issues with ```phat```, take a look here for possible workarounds: https://github.com/andresantoro/RHOSTS/tree/main/High_order_TS  
 
 
+
+### Julia code
+A Julia code (1.8.5 tested) is now available for computing the scaffold, violating triangles, and higher-order indicators more efficiently than the equivalent Python implementation.
+
 -----
 ## Usage
 
@@ -50,7 +54,7 @@ Sample bash scripts to launch the code with different options can be found in th
 In the folder ```Containers``` you will also find all the instructions for building containers either using Docker (https://www.docker.com/) or Apptainer (http://apptainer.org/).
 
 
-If you happen to find any use of this code please do not forget to cite our paper ;-)
+If you happen to find any use of this code please do not forget to cite our paper, or our recent preprint, in which we used a slight variation of the homological scaffold: https://www.biorxiv.org/content/10.1101/2023.12.04.569913v1.abstract ;-)
 
 ## License
 
