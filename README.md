@@ -39,7 +39,7 @@ For instance, if you have issues with ```phat```, take a look here for possible 
 
 
 ### Julia code
-A Julia code (1.8.5 tested) is now available for computing the scaffold, violating triangles, and higher-order indicators more efficiently than the equivalent Python implementation.
+A Julia code (1.10.2 tested) is now available for computing the scaffold, violating triangles, and higher-order indicators more efficiently than the equivalent Python implementation.
 
 -----
 ## Usage
