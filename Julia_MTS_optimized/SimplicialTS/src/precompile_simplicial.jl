@@ -2,6 +2,7 @@ current_path_simplicial_TS=pwd()
 push!(LOAD_PATH,"$current_path_simplicial_TS")
 using SimplicialTS
 using HDF5
+using ArgParse
 flag_scaffold=1
 flag_triangles=1
 flag_sliced_wasserstein = 0
@@ -11,6 +12,7 @@ simplicial_TS=create_data_structure(data);
 list_all_simplices=create_simplicial_complex(simplicial_TS,t);
 FID= h5open("trial.hd5", "w")
 FID_triangles=h5open("trial_triangles.hd5","w")
-fix_violations_and_compute_complexity(list_all_simplices, t, simplicial_TS, FID, flag_scaffold, FID_triangles, flag_triangles, flag_sliced_wasserstein)
+output=fix_violations_and_compute_complexity(list_all_simplices, t, simplicial_TS, FID, flag_scaffold, FID_triangles, flag_triangles, flag_sliced_wasserstein)
+println(join(output, ' '))
 close(FID)
 close(FID_triangles)

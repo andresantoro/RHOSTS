@@ -5,7 +5,6 @@ using Base.Threads
 using HDF5
 using ArgParse
 
-
 function parse_commandline(args)
     s = ArgParseSettings()
 
@@ -42,6 +41,7 @@ end
 
 
 
+
 #### MAIN ### 
 
 input_data=parse_commandline(ARGS)
@@ -72,7 +72,7 @@ verbose = input_data["verbose"]
 if verbose == 1
     println(stderr, "Filename inserted: ", filename)
     if t0 != t1
-        println(stderr, "Interval time points: ", t0, t1)
+        println(stderr, "Interval time points: ", t0, "-", t1)
     end
     println(stderr, "Scaffold Flag: ", flag_scaffold, ";   Scaffold name: ", scaffold_name)
     println(stderr, "Triangles Flag: ", flag_triangles, ";   Triangles name: ", triangles_name)
@@ -100,16 +100,13 @@ end
 
 
 
-
 @threads for t in t0:t1
     list_all_simplices = create_simplicial_complex(simplicial_TS, t)
-    fix_violations_and_compute_complexity(list_all_simplices, t, simplicial_TS, FID, flag_scaffold, FID_triangles, flag_triangles, flag_sliced_wasserstein)
-
-    GC.gc()
-
+    local output=fix_violations_and_compute_complexity(list_all_simplices, t, simplicial_TS, FID, flag_scaffold, FID_triangles, flag_triangles, flag_sliced_wasserstein)
+    println(join(output, ' '))
+    #println(output)
 end
 
 # Closing the files
 close(FID)
 close(FID_triangles)
-GC.gc()

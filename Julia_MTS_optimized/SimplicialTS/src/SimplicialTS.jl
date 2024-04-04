@@ -7,10 +7,8 @@ using Combinatorics
 using LoopVectorization
 using PersistenceDiagrams
 using Statistics
-using Base.Threads
 using HDF5
 using DelimitedFiles
-using Distances
 
 
 export simplicial_complex_mvts,z_score, find_maximum_two_vecs!,create_data_structure,coherence_function,correction_for_coherence,create_simplicial_complex, fix_violations_and_compute_complexity, compute_complexity, load_data,load_data_mat,load_data_synthetic_kaneko, load_normaltxt, find_max_weight, compute_scaffold_fast, sliced_wasserstein
@@ -29,10 +27,10 @@ struct simplicial_complex_mvts
     triplets_max::Vector{Float64}
 end
 
-# function cityblock(x,y)
+function cityblock(x,y)
     
-#     return sum(abs.(x-y))
-# end
+    return sum(abs.(x-y))
+end
 
 function sliced_wasserstein(PD1,PD2, M::Int=50)
     """
@@ -108,9 +106,9 @@ function create_data_structure(data::Matrix{Float64})::simplicial_complex_mvts
     ##Compute the edges
     N_edges = div(N*(N-1),2)
     ets_zscore = similar(data,(N_edges, 2))
-    ets_max=similar(data,T)
+    ets_max=zeros(T)#similar(data,T)
     ets_indexes=Dict{Int64, Vector{Int64}}()
-    current_val=similar(data, T)
+    current_val=Vector{Float64}()
     l=1
     @inbounds for i in 1:N
          for j in  i+1:N
@@ -129,7 +127,7 @@ function create_data_structure(data::Matrix{Float64})::simplicial_complex_mvts
     ##Compute the triplets
     N_triplets =binomial(N,3)
     triplets_zscore=similar(data,(N_triplets,2))
-    triplets_max=similar(data,T)
+    triplets_max=zeros(T)
     triplets_indexes=Dict{Int64, Vector{Int64}}()
     triplets_indexes_reverse=Dict{Tuple{Int64,Int64,Int64},Int64}()
     l=1
@@ -138,7 +136,7 @@ function create_data_structure(data::Matrix{Float64})::simplicial_complex_mvts
             for k in j+1:N
             @views current_val = data[i,:] .* data[j,:] .* data[k,:]
             m = mean(current_val)
-            s = std(current_val,mean=m,corrected=false)
+            s = std(current_val,mean=m,corrected=false,)
             triplets_zscore[l,1] = m
             triplets_zscore[l,2] = s
             find_maximum_two_vecs!(triplets_max,(current_val .- m) ./ s)
@@ -222,7 +220,7 @@ end
 # Function that remove all the violating triangles to create a proper filtration
 function fix_violations_and_compute_complexity(sorted_simplices::Vector{Tuple{Vector{Int64}, Float64}},
  t_current::Int64, simplicial_TS::simplicial_complex_mvts,
- fid::HDF5.File,flag_scaffold::Int64, fid_triangles::HDF5.File, flag_triangles::Int64, flag_sliced_wasserstein::Int64)#::Tuple{Vector{Pair{Tuple{Int64, Vararg{Int64}}, Float64}},Vector{Tuple{Vector{Int64}, Float64, Float64}},Float64,Vector{Pair{Tuple{Int64, Vararg{Int64}}, Float64}}}
+ fid::HDF5.File,flag_scaffold::Int64, fid_triangles::HDF5.File, flag_triangles::Int64, flag_sliced_wasserstein::Int64)::Vector{Float64}#::Tuple{Vector{Pair{Tuple{Int64, Vararg{Int64}}, Float64}},Vector{Tuple{Vector{Int64}, Float64, Float64}},Float64,Vector{Pair{Tuple{Int64, Vararg{Int64}}, Float64}}}
     # Sorting the simplices in a descending order according to the weights
     sort!(sorted_simplices, rev=true, by=x->x[2])
     
@@ -247,7 +245,7 @@ function fix_violations_and_compute_complexity(sorted_simplices::Vector{Tuple{Ve
         # If the current simplex is an edge or a node, then I will immediately include it
         if length(simplices) <= 2
 #             if length(simplices) == 1
-            push!(list_simplices_all, (tuple(simplices...) => -weight))
+            push!(list_simplices_all, (Tuple(simplices) => -weight))
 #             else
 #                 if weight != sorted_simplices[index - 1][2]
 #                     counter_simplices_all += 1
@@ -257,7 +255,7 @@ function fix_violations_and_compute_complexity(sorted_simplices::Vector{Tuple{Ve
 #                 end
 #             end
 
-            push!(list_simplices_for_filtration, (tuple(simplices...) => -weight))
+            push!(list_simplices_for_filtration, (Tuple(simplices) => -weight))
             push!(set_simplices, simplices)
             counter += 1
         else
@@ -273,17 +271,17 @@ function fix_violations_and_compute_complexity(sorted_simplices::Vector{Tuple{Ve
             # If all the sub-simplices already belong to the set, then I add it in the filtration
             if flag == 3
                 push!(set_simplices, simplices)
-                push!(list_simplices_for_filtration, (tuple(simplices...) => -weight))
+                push!(list_simplices_for_filtration, (Tuple(simplices) => -weight))
                 counter += 1
                 if weight != sorted_simplices[index - 1][2]
                     counter_simplices_all += 1
                     # list_simplices_all[string(list(simplices))] = [string(counter_simplices_all), string(-weight)]
                     # list_simplices_all[Tuple(simplices)] = -weight
-                    push!(list_simplices_all, (tuple(simplices...) => -weight))
+                    push!(list_simplices_all, (Tuple(simplices) => -weight))
                 else
                     # list_simplices_all[string(list(simplices))] = [string(counter_simplices_all), string(-weight)]
                     # list_simplices_all[Tuple(simplices)] = -weight
-                    push!(list_simplices_all, (tuple(simplices...) => -weight))
+                    push!(list_simplices_all, (Tuple(simplices) => -weight))
                 end
 
                 # Count the number of positive triangles that are in the filtration
@@ -307,21 +305,23 @@ function fix_violations_and_compute_complexity(sorted_simplices::Vector{Tuple{Ve
 #     println("Length:", length(list_simplices_all))
     # return(list_simplices_for_filtration, list_violating_triangles, hyper_coherence, list_simplices_all)
 
-    compute_complexity(simplicial_TS,list_simplices_for_filtration, list_violating_triangles,
+    output=compute_complexity(simplicial_TS,list_simplices_for_filtration, list_violating_triangles,
      hyper_coherence, list_simplices_all, t_current, flag_scaffold, fid, fid_triangles, flag_triangles, flag_sliced_wasserstein)
+    return(output)
 end
 
 function compute_complexity(simplicial_TS::simplicial_complex_mvts,  list_simplices_positive::Vector{Pair{Tuple{Int64, Vararg{Int64}}, Float64}},
  list_violation_fully_coherence::Vector{Tuple{Vector{Int64}, Float64, Float64}},
   hyper_coherence::Float64,  list_filtration_scaffold::Vector{Pair{Tuple{Int64, Vararg{Int64}}, Float64}},
-   t_current::Int64, flag_scaffold::Int64, fid::HDF5.File, fid_triangles::HDF5.File, flag_triangles::Int64, flag_sliced_wasserstein::Int64)
+   t_current::Int64, flag_scaffold::Int64, fid::HDF5.File, fid_triangles::HDF5.File, flag_triangles::Int64, flag_sliced_wasserstein::Int64)::Vector{Float64}
 	num_nodes=simplicial_TS.num_ROI
     ##From here it starts the computation of hypercomplexity and scaffold
     dgms1_clean_FC=Vector{Tuple{Real,Real}}()
     dgms1_clean_CT=Vector{Tuple{Real,Real}}()
     dgms1_clean_FD=Vector{Tuple{Real,Real}}()
-    
+
     dgms1=ripserer(Custom(list_simplices_positive),reps=1, alg=:cohomology, verbose=false)
+
     max_filtration_weight = find_max_weight(simplicial_TS,t_current)
     dgms1_clean = [(death(i) == Inf ? (birth(i), max_filtration_weight) : (birth(i), death(i))) for i in dgms1[2]]
     for i in dgms1[2]
@@ -381,7 +381,7 @@ function compute_complexity(simplicial_TS::simplicial_complex_mvts,  list_simpli
         avg_edge_violation+=l[3]
         counter+=1
         #println(l[1],l[2])
-        current_index= simplicial_TS.triplets_indexes_reverse[tuple(l[1]...)]
+        current_index= simplicial_TS.triplets_indexes_reverse[Tuple(l[1])]
         vec_triangles[current_index]=l[2]
     end
     #println(vec_triangles)
@@ -392,8 +392,8 @@ function compute_complexity(simplicial_TS::simplicial_complex_mvts,  list_simpli
         fid_triangles[string(t_current)]=vec_triangles
     end
 
-
-    println(t_current, " ", hyper_complexity, " ",complexity_FC, " ",complexity_CT, " ",complexity_FD, " ",hyper_coherence, " ",avg_edge_violation)
+    return([t_current, hyper_complexity, complexity_FC, complexity_CT,complexity_FD,hyper_coherence,avg_edge_violation])
+    #println(t_current, " ", hyper_complexity, " ",complexity_FC, " ",complexity_CT, " ",complexity_FD, " ",hyper_coherence, " ",avg_edge_violation)
 end
 
 
@@ -403,9 +403,9 @@ function load_data(path_single_file::String)::Matrix{Float64}
     extension_file = split(path_single_file, '.')[end]
     if extension_file == "mat"
         data = load_data_mat(path_single_file)
-    elseif extension_file == "txt"
+    elseif extension_file == "txt_kaneko"
         data = load_data_synthetic_kaneko(path_single_file)
-    elseif extension_file == "tx"
+    elseif extension_file == "txt"
         data = load_normaltxt(path_single_file)
     end
     # print(size(data))
