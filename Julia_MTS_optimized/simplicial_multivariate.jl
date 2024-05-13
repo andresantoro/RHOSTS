@@ -98,15 +98,17 @@ else
     FID_triangles= h5open("None1.hd5","w")
 end
 
-
-
+alldata= Array{Union{Nothing, String}}(nothing, t1-t0+1)
 @threads for t in t0:t1
     list_all_simplices = create_simplicial_complex(simplicial_TS, t)
     local output=fix_violations_and_compute_complexity(list_all_simplices, t, simplicial_TS, FID, flag_scaffold, FID_triangles, flag_triangles, flag_sliced_wasserstein)
-    println(join(output, ' '))
-    #println(output)
+    alldata[t]=join(output, ' ')
 end
 
+# ##Printing the HOindicators on the output
+for HO_values in alldata
+    println(HO_values)
+end
 # Closing the files
 close(FID)
 close(FID_triangles)
