@@ -4,7 +4,7 @@
 3. A file .hd5 will contain the information about the homological scaffold (_default is the frequency scaffold_). The format is a dictionary, where the key corresponds to time (N.B. julia starts from 1 rather than from 0), whereas the value encodes the weighted adjacency matrix of the scaffold.
 4. A file .hd5 will contain the information about the list of violating triangles. The format is a dictionary, where the key corresponds to time (N.B. julia starts from 1 rather than from 0), whereas the values are encoded in a the list of size (N choose 3) violating triangles, where zeros correspond to non-violating triangles.
 
-Launching the code with `-h` will show all the different options for launching the code.
+If you use `-h`, it will show all the different options for launching the code.
 
 
 
